@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Slider } from './shadcn/Slider';
 import useInterval from './useInterval';
 import { rafLoop } from './rafLoop';
-import { GiToyMallet } from "react-icons/gi";
+import { GiToyMallet } from 'react-icons/gi';
 
 
 console.log('cv', cv);
