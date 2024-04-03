@@ -11,7 +11,7 @@ import { rafLoop } from './rafLoop';
 import { GiToyMallet } from 'react-icons/gi';
 
 
-console.log('cv', cv);
+(window as any).confetti = confetti;
 
 type Level = {
   credit: ReactNode,
@@ -195,9 +195,9 @@ export const Root = memo(() => {
               y: (videoRect.top + newPos[1] * videoElem.clientHeight / videoElem.videoHeight) / window.innerHeight,
             };
             // console.log(origin);
-            confetti({ particleCount: 1000, spread: 70, origin })?.then(() => {
-              // console.log('confetti done');
-            });
+            confetti({ origin, particleCount: 100, spread: 360, scalar: 3, shapes: [
+              confetti.shapeFromText({ text: '🏆' }),
+            ] });
           }
         }
       }
