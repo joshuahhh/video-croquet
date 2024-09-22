@@ -9,6 +9,7 @@ import { Slider } from './shadcn/Slider';
 import useInterval from './useInterval';
 import { rafLoop } from './rafLoop';
 import { GiToyMallet } from 'react-icons/gi';
+import { path as d3path } from 'd3-path';
 
 
 (window as any).confetti = confetti;
@@ -335,16 +336,16 @@ export const Root = memo(() => {
           {level.targets.map(([x, y], i) => {
             let hit = levelState.type === 'in-flight'
               ? levelState.hitTargets.has(i)
-              : levelState.lastBallInFlight?.hitTargets.has(i);
+              : levelState.lastBallInFlight?.hitTargets.has(i) ?? false;
 
-            return <circle key={i} cx={x} cy={y} r='20' fill={hit ? 'green' : 'black'} stroke='white' strokeWidth={4}/>;
+            return <Target key={i} x={x} y={y} hit={hit}/>;
           })}
           {/* WHEN IN FLIGHT: TRACE, ORIGINAL POSITION, FLYING BALL */}
           { levelState.type === 'in-flight' && <>
             <BallPath points={levelState.ballTrace}/>
             <circle cx={levelState.puttPos[0]} cy={levelState.puttPos[1]} r='10' fill='transparent' stroke='white' strokeWidth={4}/>
             { levelState.ballPos &&
-              <Ball pos={levelState.ballPos}/>
+              <Ball pos={levelState.ballPos} rotate={(levelState.ballPos[0] - levelState.ballTrace[0][0]) * 0.2}/>
             }
           </>}
           {/* WHEN PUTTING: OLD TRACE, DRAGGABLE BALL */}
@@ -403,13 +404,35 @@ export const Root = memo(() => {
   </div>;
 });
 
+const s = 20;
+const targetPath = d3path();
+targetPath.moveTo(-s, s);
+targetPath.lineTo(-s, -s);
+targetPath.lineTo(s, -s);
+targetPath.lineTo(s, s);
+// targetPath.closePath();
+const targetPathD = targetPath.toString();
 
-function Ball(props: React.SVGAttributes<SVGGElement> & {
-  pos: [number, number],
+function Target(props: {
+  x: number,
+  y: number,
+  hit: boolean,
 }) {
-  const { pos, ...rest } = props;
+  const { x, y, hit } = props;
+  return <g transform={`translate(${x}, ${y})`}>
+    {/* <circle r='20' fill={hit ? 'green' : 'black'} stroke='white' strokeWidth={4}/> */}
+    <path d={targetPathD} stroke='black' fill='none' strokeWidth={12}/>
+    <path d={targetPathD} stroke={hit ? '#88ff88' : 'white'} fill='none' strokeWidth={8}/>
+  </g>;
+}
 
-  return <g transform={`translate(${pos[0]}, ${pos[1]})`} {...rest}>
+function Ball(props: {
+  pos: [number, number],
+  rotate?: number,
+} & Pick<React.SVGAttributes<SVGGElement>, 'className' | 'onMouseDown'>) {
+  const { pos, rotate = 0, ...rest } = props;
+
+  return <g transform={`translate(${pos[0]}, ${pos[1]}) rotate(${rotate})`} {...rest}>
     <mask id='ball-mask'>
       <rect x={-50} y={-50} width='100' height='100' fill='white'/>
       <circle cx={0} cy={0} r='30' fill='rgba(0,0,0,80%)'/>
@@ -450,13 +473,13 @@ function htmlToMat(src: HTMLVideoElement | HTMLCanvasElement) {
   return cv.imread(canvas);
 }
 
-export default function dims(source: HTMLVideoElement | HTMLCanvasElement) {
-  if (source instanceof HTMLVideoElement) {
-    return [source.videoWidth, source.videoHeight];
-  } else {
-    return [source.width, source.height];
-  }
-}
+// function dims(source: HTMLVideoElement | HTMLCanvasElement) {
+//   if (source instanceof HTMLVideoElement) {
+//     return [source.videoWidth, source.videoHeight];
+//   } else {
+//     return [source.width, source.height];
+//   }
+// }
 
 
 // function getTypeString(type: number): string {
