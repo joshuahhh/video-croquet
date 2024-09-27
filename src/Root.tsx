@@ -514,20 +514,21 @@ export const Root = memo(() => {
             alt=""
             className="relative aspect-[1.3] w-full pointer-events-none"
           />
-          <h1 className="text-center text-7xl font-bold fixed left-0 right-0 top-3">
-            VIDEO CROQUET 3000
-          </h1>
-          <div className="fixed left-0 right-0 bottom-0 text-center py-4">
-            {levelState.type === "putting" && (
-              <Button onClick={switchToInFlightMode} className="text-3xl">
-                <GiToyMallet className="mr-2" /> putt
-              </Button>
-            )}
-            {levelState.type === "in-flight" && (
-              <Button onClick={switchToPuttingMode} className="text-3xl">
-                reset
-              </Button>
-            )}
+          <div className="absolute bottom-[35%] left-[13%] right-[22.5%]">
+            <Slider
+              min={level.startTime}
+              max={level.endTime}
+              step={0.001}
+              value={[currentTime]}
+              disabled={true}
+              // onValueChange={(newValue) => {
+              //   if (videoElem) {
+              //     console.log('onValueChange', newValue[0], videoElem.currentTime);
+              //     videoElem.currentTime = newValue[0];
+              //     setCurrentTime(newValue[0]);
+              //   }
+              // }}
+            />
           </div>
           <div
             className="w-40 absolute right-[11.5%] top-[14%]"
@@ -554,21 +555,20 @@ export const Root = memo(() => {
               </SelectContent>
             </Select>
           </div>
-          <div className="absolute bottom-[35%] left-[13%] right-[22.5%]">
-            <Slider
-              min={level.startTime}
-              max={level.endTime}
-              step={0.001}
-              value={[currentTime]}
-              disabled={true}
-              // onValueChange={(newValue) => {
-              //   if (videoElem) {
-              //     console.log('onValueChange', newValue[0], videoElem.currentTime);
-              //     videoElem.currentTime = newValue[0];
-              //     setCurrentTime(newValue[0]);
-              //   }
-              // }}
-            />
+          <h1 className="text-center text-7xl font-bold fixed left-0 right-0 top-3">
+            VIDEO CROQUET 3000
+          </h1>
+          <div className="fixed left-0 right-0 bottom-0 text-center py-4">
+            {levelState.type === "putting" && (
+              <Button onClick={switchToInFlightMode} className="text-3xl">
+                <GiToyMallet className="mr-2" /> putt
+              </Button>
+            )}
+            {levelState.type === "in-flight" && (
+              <Button onClick={switchToPuttingMode} className="text-3xl">
+                reset
+              </Button>
+            )}
           </div>
         </div>
         <div className="flex-1 bg-[rgb(91,132,45)]" />
