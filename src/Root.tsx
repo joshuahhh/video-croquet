@@ -4,7 +4,6 @@ import { Mat, default as cv } from "@techstark/opencv-js";
 import confetti from "canvas-confetti";
 import { path as d3path } from "d3-path";
 import { ReactNode, memo, useCallback, useEffect, useState } from "react";
-import { GiToyMallet } from "react-icons/gi";
 import { rafLoop } from "./rafLoop";
 import { Button } from "./shadcn/Button";
 import {
@@ -156,6 +155,7 @@ type LevelState =
         ballTrace: [number, number][];
         hitTargets: Set<number>;
       };
+      isDragging: boolean;
     }
   | {
       type: "in-flight";
@@ -170,6 +170,7 @@ const intialLevelState: LevelState = {
   type: "putting",
   puttPos: [1920 / 2, 1080 / 2],
   lastBallInFlight: null,
+  isDragging: false,
 };
 
 export const Root = memo(() => {
@@ -358,6 +359,7 @@ export const Root = memo(() => {
         ballTrace,
         hitTargets,
       },
+      isDragging: false,
     });
     videoElem!.currentTime = level.startTime;
     videoElem!.pause();
@@ -403,7 +405,14 @@ export const Root = memo(() => {
   }, [levelStateUP.puttPos, svg, videoElem]);
 
   return (
-    <div className="flex flex-col items-center overflow-hidden w-full h-full">
+    <div
+      className="flex flex-col items-center overflow-hidden w-full h-full"
+      onClick={() => {
+        if (levelState.type === "in-flight") {
+          switchToPuttingMode();
+        }
+      }}
+    >
       <div className="flex flex-col w-full h-full">
         <div className="flex-1 bg-[rgb(90,145,213)]" />
         <div id="BACKGROUND" className="relative">
@@ -474,6 +483,9 @@ export const Root = memo(() => {
                         (levelState.ballPos[0] - levelState.ballTrace[0][0]) *
                         0.2
                       }
+                      malletAttr={{
+                        className: "hidden",
+                      }}
                     />
                   )}
                 </>
@@ -486,28 +498,39 @@ export const Root = memo(() => {
                   )}
                   <Ball
                     pos={levelState.puttPos}
-                    className="cursor-move"
-                    onMouseDown={(ev) => {
-                      startDrag({
-                        init() {
-                          return {
-                            startX: levelState.puttPos[0],
-                            startY: levelState.puttPos[1],
-                          };
-                        },
-                        move({ startX, startY }) {
-                          levelStateUP.puttPos.$set([
-                            startX +
-                              (this.startDeltaX * videoElem!.videoWidth) /
-                                videoElem!.clientWidth,
-                            startY +
-                              (this.startDeltaY * videoElem!.videoHeight) /
-                                videoElem!.clientHeight,
-                          ]);
-                        },
-                        done() {},
-                        keepCursor: true,
-                      })(ev as any);
+                    ballAttr={{
+                      className: "cursor-move",
+                      onMouseDown: (ev) => {
+                        startDrag({
+                          init() {
+                            levelStateUP.isDragging.$set(true);
+                            return {
+                              startX: levelState.puttPos[0],
+                              startY: levelState.puttPos[1],
+                            };
+                          },
+                          move({ startX, startY }) {
+                            levelStateUP.puttPos.$set([
+                              startX +
+                                (this.startDeltaX * videoElem!.videoWidth) /
+                                  videoElem!.clientWidth,
+                              startY +
+                                (this.startDeltaY * videoElem!.videoHeight) /
+                                  videoElem!.clientHeight,
+                            ]);
+                          },
+                          done() {
+                            levelStateUP.isDragging.$set(false);
+                          },
+                          keepCursor: true,
+                        })(ev as any);
+                      },
+                    }}
+                    malletAttr={{
+                      onClick: switchToInFlightMode,
+                      className: `cursor-pointer transition duration-200 ${
+                        levelState.isDragging ? "opacity-0" : "opacity-100"
+                      }`,
                     }}
                   />
                 </>
@@ -586,7 +609,7 @@ export const Root = memo(() => {
           <h1 className="text-center text-7xl font-bold fixed left-0 right-0 top-3">
             VIDEO CROQUET 3000
           </h1>
-          <div className="fixed left-0 right-0 bottom-0 text-center py-4">
+          {/* <div className="fixed left-0 right-0 bottom-0 text-center py-4">
             {levelState.type === "putting" && (
               <Button onClick={switchToInFlightMode} className="text-3xl">
                 <GiToyMallet className="mr-2" /> putt
@@ -597,7 +620,7 @@ export const Root = memo(() => {
                 reset
               </Button>
             )}
-          </div>
+          </div> */}
         </div>
         <div className="flex-1 bg-[rgb(91,132,45)]" />
       </div>
@@ -606,10 +629,13 @@ export const Root = memo(() => {
 });
 
 const s = 20;
+const arc = 10;
 const targetPath = d3path();
 targetPath.moveTo(-s, s);
-targetPath.lineTo(-s, -s);
-targetPath.lineTo(s, -s);
+targetPath.lineTo(-s, -s + arc);
+targetPath.arc(-s + arc, -s + arc, arc, Math.PI, (3 * Math.PI) / 2);
+targetPath.lineTo(s - arc, -s);
+targetPath.arc(s - arc, -s + arc, arc, (3 * Math.PI) / 2, 0);
 targetPath.lineTo(s, s);
 // targetPath.closePath();
 const targetPathD = targetPath.toString();
@@ -619,33 +645,47 @@ function Target(props: { x: number; y: number; hit: boolean }) {
   return (
     <g transform={`translate(${x}, ${y})`}>
       {/* <circle r='20' fill={hit ? 'green' : 'black'} stroke='white' strokeWidth={4}/> */}
-      <path d={targetPathD} stroke="black" fill="none" strokeWidth={12} />
+      <path
+        d={targetPathD}
+        stroke="black"
+        fill="none"
+        strokeWidth={12}
+        strokeLinecap="square"
+      />
       <path
         d={targetPathD}
         stroke={hit ? "rgb(135,178,81)" : "white"}
         fill="none"
         strokeWidth={8}
+        strokeLinecap="square"
       />
     </g>
   );
 }
 
-function Ball(
-  props: {
-    pos: [number, number];
-    rotate?: number;
-  } & Pick<React.SVGAttributes<SVGGElement>, "className" | "onMouseDown">,
-) {
-  const { pos, rotate = 0, ...rest } = props;
+function Ball(props: {
+  pos: [number, number];
+  rotate?: number;
+  ballAttr?: React.SVGAttributes<SVGImageElement>;
+  malletAttr?: React.SVGAttributes<SVGImageElement>;
+}) {
+  const { pos, rotate = 0, ballAttr, malletAttr } = props;
 
   return (
-    <g
-      transform={`translate(${pos[0]}, ${pos[1]}) rotate(${rotate})`}
-      {...rest}
-    >
+    <g transform={`translate(${pos[0]}, ${pos[1]}) rotate(${rotate})`}>
+      <radialGradient id="ball-mask-gradient">
+        <stop offset="50%" stop-color="rgba(0,0,0,90%)" />
+        <stop offset="100%" stop-color="rgba(0,0,0,0%)" />
+      </radialGradient>
       <mask id="ball-mask">
         <rect x={-50} y={-50} width="100" height="100" fill="white" />
-        <circle cx={0} cy={0} r="30" fill="rgba(0,0,0,80%)" />
+        <circle
+          cx={0}
+          cy={0}
+          r="40"
+          fill="url(#ball-mask-gradient)"
+          // fill="rgba(0,0,0,80%)"
+        />
       </mask>
       <image
         href="ball.png"
@@ -654,11 +694,15 @@ function Ball(
         width="100"
         height="100"
         mask="url(#ball-mask)"
-        style={
-          {
-            // boxShadow: '0 0 10px 5px white',
-          }
-        }
+        {...ballAttr}
+      />
+      <image
+        href="mallet-bw-alpha.png"
+        x={-130}
+        y={-190}
+        width="150"
+        height="150"
+        {...malletAttr}
       />
     </g>
   );
