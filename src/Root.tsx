@@ -20,6 +20,7 @@ import useInterval from "./useInterval";
 (window as any).confetti = confetti;
 
 type Level = {
+  name: string;
   credit: ReactNode;
   videoUrl: string;
   startTime: number;
@@ -28,8 +29,9 @@ type Level = {
   solution?: [number, number];
 };
 
-const levels: Record<string, Level> = {
-  shibuya: {
+const levels: Level[] = [
+  {
+    name: "shibuya",
     credit: (
       <>
         video by{" "}
@@ -53,7 +55,8 @@ const levels: Record<string, Level> = {
     ],
     solution: [1170, 428],
   },
-  starlings: {
+  {
+    name: "starlings",
     credit: (
       <>
         video by{" "}
@@ -74,7 +77,8 @@ const levels: Record<string, Level> = {
     ],
     solution: [1058, 696],
   },
-  bike: {
+  {
+    name: "bike",
     credit: (
       <>
         video by{" "}
@@ -95,7 +99,8 @@ const levels: Record<string, Level> = {
     ],
     solution: [1398, 442],
   },
-  train: {
+  {
+    name: "train",
     credit: (
       <>
         video by{" "}
@@ -119,7 +124,8 @@ const levels: Record<string, Level> = {
     ],
     solution: [988, 264],
   },
-  clouds: {
+  {
+    name: "clouds",
     credit: (
       <>
         video by{" "}
@@ -140,7 +146,7 @@ const levels: Record<string, Level> = {
     ],
     solution: [2904 / 2, 986 / 2],
   },
-};
+];
 
 type LevelState =
   | {
@@ -167,10 +173,8 @@ const intialLevelState: LevelState = {
 };
 
 export const Root = memo(() => {
-  const [levelName, setLevelName] = useState<keyof typeof levels>(
-    Object.keys(levels)[0],
-  );
-  const level = levels[levelName];
+  const [levelIdx, setLevelIdx] = useState<number>(0);
+  const level = levels[levelIdx];
 
   const [videoElem, setVideoElem] = useState<HTMLVideoElement | null>(null);
   const [videoSize, setVideoSize] = useState<[number, number] | null>(null);
@@ -359,9 +363,9 @@ export const Root = memo(() => {
   }, [level.startTime, levelState, videoElem]);
 
   const resetIntoPuttingMode = useCallback(
-    (levelName: keyof typeof levels) => {
+    (levelIdx: number) => {
       setLevelState(intialLevelState);
-      videoElem!.currentTime = levels[levelName].startTime;
+      videoElem!.currentTime = levels[levelIdx].startTime;
       videoElem!.pause();
     },
     [videoElem],
@@ -535,11 +539,11 @@ export const Root = memo(() => {
             style={{ transform: "translate(50%)" }}
           >
             <Select
-              value={levelName}
+              value={"" + levelIdx}
               onValueChange={(value) => {
-                const levelName = value as keyof typeof levels;
-                setLevelName(levelName);
-                resetIntoPuttingMode(levelName);
+                const levelIdx = +value;
+                setLevelIdx(levelIdx);
+                resetIntoPuttingMode(levelIdx);
                 videoElem!.load();
               }}
             >
@@ -547,9 +551,9 @@ export const Root = memo(() => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {Object.keys(levels).map((name) => (
-                  <SelectItem key={name} value={name} className="text-xl">
-                    {name}
+                {levels.map((level, idx) => (
+                  <SelectItem key={idx} value={"" + idx} className="text-xl">
+                    {level.name}
                   </SelectItem>
                 ))}
               </SelectContent>
