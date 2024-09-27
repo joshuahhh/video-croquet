@@ -50,27 +50,6 @@ module.exports = {
     '@stylistic/js/block-spacing': ['warn', 'always'],  // needs 'js' cuz ts rule is overbroad
     '@stylistic/padded-blocks': ['warn', 'never'],
     '@stylistic/space-before-blocks': ['warn', 'always'],
-    // '@stylistic/space-before-function-paren': ['warn', 'always'],
-    // '@stylistic/object-curly-spacing': ['warn', 'always'],
     '@stylistic/semi': ['warn', 'always'],
-    '@stylistic/quotes': ['warn', 'single'],
-    '@stylistic/jsx-quotes': ['warn', 'prefer-single'],
-    '@stylistic/comma-dangle': ['warn', {
-      arrays: 'always-multiline',
-      objects: 'always-multiline',
-      imports: 'always-multiline',
-      exports: 'always-multiline',
-      functions: 'never',
-    }],
-    '@stylistic/ts/member-delimiter-style': ['warn', {
-      multiline: {
-        delimiter: 'comma',
-        requireLast: true,
-      },
-      singleline: {
-        delimiter: 'comma',
-        requireLast: false,
-      },
-    }],
   },
 };

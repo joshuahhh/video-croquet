@@ -79,5 +79,11 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+
+    height: 100vh;
+  }
+
+  #root {
+    height: 100vh;
   }
 }
