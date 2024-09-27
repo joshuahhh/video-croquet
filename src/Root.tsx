@@ -176,6 +176,8 @@ export const Root = memo(() => {
   const [levelIdx, setLevelIdx] = useState<number>(0);
   const level = levels[levelIdx];
 
+  const [passedLevel, setPassedLevel] = useState<boolean>(false);
+
   const [videoElem, setVideoElem] = useState<HTMLVideoElement | null>(null);
   const [videoSize, setVideoSize] = useState<[number, number] | null>(null);
 
@@ -283,7 +285,7 @@ export const Root = memo(() => {
             levelState.hitTargets.size < level.targets.length &&
             hitTargets.size === level.targets.length
           ) {
-            // console.log('confetti time');
+            setPassedLevel(true);
             const videoRect = videoElem.getBoundingClientRect();
             const origin = {
               x:
@@ -296,7 +298,6 @@ export const Root = memo(() => {
                     videoElem.videoHeight) /
                 window.innerHeight,
             };
-            // console.log(origin);
             confetti({
               origin,
               particleCount: 100,
@@ -543,6 +544,7 @@ export const Root = memo(() => {
               onValueChange={(value) => {
                 const levelIdx = +value;
                 setLevelIdx(levelIdx);
+                setPassedLevel(false);
                 resetIntoPuttingMode(levelIdx);
                 videoElem!.load();
               }}
@@ -558,6 +560,28 @@ export const Root = memo(() => {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div
+            className="absolute right-[11.5%] top-[61%]"
+            style={{ transform: "translate(50%)" }}
+          >
+            {passedLevel && (
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  const newIdx = (levelIdx + 1) % levels.length;
+                  setLevelIdx(newIdx);
+                  setPassedLevel(false);
+                  resetIntoPuttingMode(newIdx);
+                  videoElem!.load();
+                }}
+                className="text-3xl"
+              >
+                {levelIdx === levels.length - 1
+                  ? "back to start"
+                  : "next level"}
+              </Button>
+            )}
           </div>
           <h1 className="text-center text-7xl font-bold fixed left-0 right-0 top-3">
             VIDEO CROQUET 3000
