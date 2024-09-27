@@ -649,7 +649,7 @@ function Target(props: { x: number; y: number; hit: boolean }) {
         d={targetPathD}
         stroke="black"
         fill="none"
-        strokeWidth={12}
+        strokeWidth={16}
         strokeLinecap="square"
       />
       <path
@@ -671,6 +671,9 @@ function Ball(props: {
 }) {
   const { pos, rotate = 0, ballAttr, malletAttr } = props;
 
+  const ballR = 40;
+  const maskR = ballR * 0.8;
+
   return (
     <g transform={`translate(${pos[0]}, ${pos[1]}) rotate(${rotate})`}>
       <radialGradient id="ball-mask-gradient">
@@ -678,30 +681,44 @@ function Ball(props: {
         <stop offset="100%" stop-color="rgba(0,0,0,0%)" />
       </radialGradient>
       <mask id="ball-mask">
-        <rect x={-50} y={-50} width="100" height="100" fill="white" />
+        <rect
+          x={-ballR}
+          y={-ballR}
+          width={2 * ballR}
+          height={2 * ballR}
+          fill="white"
+        />
         <circle
           cx={0}
           cy={0}
-          r="40"
+          r={maskR}
           fill="url(#ball-mask-gradient)"
           // fill="rgba(0,0,0,80%)"
         />
       </mask>
       <image
         href="ball.png"
-        x={-50}
-        y={-50}
-        width="100"
-        height="100"
+        x={-ballR}
+        y={-ballR}
+        width={2 * ballR}
+        height={2 * ballR}
         mask="url(#ball-mask)"
         {...ballAttr}
       />
+      <circle
+        cy={1}
+        r={ballR}
+        fill="transparent"
+        stroke="rgba(255,255,255,50%)"
+        strokeWidth={1}
+        style={{ pointerEvents: "none" }}
+      />
       <image
-        href="mallet-bw-alpha.png"
-        x={-130}
-        y={-190}
-        width="150"
-        height="150"
+        href="mallet-bw.png"
+        x={-110}
+        y={-180}
+        width="140"
+        height="140"
         {...malletAttr}
       />
     </g>
