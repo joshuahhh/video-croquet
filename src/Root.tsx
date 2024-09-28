@@ -107,6 +107,30 @@ const levels: Level[] = [
     solution: [1398, 442],
   },
   {
+    name: "cirrus",
+    credit: (
+      <>
+        video by{" "}
+        <a
+          href="https://www.youtube.com/watch?v=WF34N4gJAKE"
+          className="text-blue-300"
+        >
+          Bonobo & Cyriak
+        </a>
+      </>
+    ),
+    videoUrl: "cirrus.webm",
+    // startTime: 2 * 60 + 10,
+    startTime: 1 * 60 + 40,
+    // startTime: 37,
+    endTime: 1 * 60 + 44,
+    targets: [
+      [892, 447],
+      [298, 210],
+    ],
+    solution: [1136, 494],
+  },
+  {
     name: "train",
     credit: (
       <>
