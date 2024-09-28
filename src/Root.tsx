@@ -177,6 +177,29 @@ const levels: Level[] = [
     ],
     solution: [2904 / 2, 986 / 2],
   },
+  {
+    name: "superslow",
+    credit: (
+      <>
+        video by{" "}
+        <a
+          href="https://www.youtube.com/watch?v=v-2hMhABNzk"
+          className="text-blue-300"
+        >
+          Strength Project
+        </a>
+      </>
+    ),
+    videoUrl: "superslow.mp4",
+    startTime: 1 * 60 + 40,
+    // startTime: 0,
+    endTime: 1 * 60 + 55,
+    targets: [
+      [877, 539],
+      [1113, 748],
+    ],
+    solution: [819, 798],
+  },
 ];
 
 type LevelState =
