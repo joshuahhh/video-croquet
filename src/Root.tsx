@@ -665,6 +665,12 @@ export const Root = memo(() => {
               setSecretMode((prev) => !prev);
             }}
           />
+          <div
+            className="absolute left-[47%] top-[67.5%]"
+            style={{ transform: "translate(-50%, -50%)" }}
+          >
+            {level.credit}
+          </div>
           <h1 className="text-center text-7xl font-bold fixed left-0 right-0 top-3">
             VIDEO CROQUET 3000
           </h1>
