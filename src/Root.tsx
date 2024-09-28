@@ -587,6 +587,7 @@ export const Root = memo(() => {
             />
           </div>
           {secretMode && (
+            <>
             <div
               className="w-40 absolute right-[11.5%] top-[14%]"
               style={{ transform: "translate(50%)" }}
@@ -606,13 +607,34 @@ export const Root = memo(() => {
                 </SelectTrigger>
                 <SelectContent>
                   {levels.map((level, idx) => (
-                    <SelectItem key={idx} value={"" + idx} className="text-xl">
+                      <SelectItem
+                        key={idx}
+                        value={"" + idx}
+                        className="text-xl"
+                      >
                       {level.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              </div>
+              {level.solution && (
+                <div
+                  className="absolute right-[11.5%] top-[18%]"
+                  style={{ transform: "translate(50%)" }}
+                >
+                  <Button
+                    variant="destructive"
+                    className="text-2xl"
+                    onClick={() => {
+                      levelStateUP.puttPos.$set(level.solution!);
+                    }}
+                  >
+                    cheat
+                  </Button>
             </div>
+              )}
+            </>
           )}
           <div
             className="absolute right-[11.5%] top-[61%]"
