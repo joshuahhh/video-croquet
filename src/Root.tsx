@@ -9,6 +9,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { rafLoop } from "./rafLoop";
@@ -431,7 +432,6 @@ export const Root = memo(() => {
           ((targetAngleRadians + Math.PI * 2) * (180 / Math.PI)) % 360;
       }
     }
-    console.log({ targetAngle });
     return targetAngle;
   }, [level.targets, levelState.puttPos]);
 
@@ -561,7 +561,7 @@ export const Root = memo(() => {
                     malletAttr={{
                       onClick: switchToInFlightMode,
                       className: `cursor-pointer transition duration-200 ${
-                        levelState.isDragging ? "opacity-30" : "opacity-100"
+                        levelState.isDragging ? "opacity-20" : "opacity-100"
                       }`,
                     }}
                     targetAngle={targetAngle}
@@ -582,13 +582,6 @@ export const Root = memo(() => {
               step={0.001}
               value={[currentTime]}
               disabled={true}
-              // onValueChange={(newValue) => {
-              //   if (videoElem) {
-              //     console.log('onValueChange', newValue[0], videoElem.currentTime);
-              //     videoElem.currentTime = newValue[0];
-              //     setCurrentTime(newValue[0]);
-              //   }
-              // }}
             />
           </div>
           <div
@@ -705,15 +698,31 @@ function Ball(props: {
 }) {
   const { pos, rotate = 0, targetAngle, ballAttr, malletAttr } = props;
 
+  const lastMalletAngleRef = useRef<number | null>(null);
+
   const ballR = 40;
   const maskR = ballR * 0.8;
 
-  const { malletAngle, shouldFlipMallet } =
-    90 <= targetAngle && targetAngle < 270
-      ? { malletAngle: targetAngle - 90, shouldFlipMallet: true }
-      : { malletAngle: targetAngle, shouldFlipMallet: false };
+  const targetAngleFromTop = (targetAngle + 270) % 360;
 
-  console.log({ malletAngle, shouldFlipMallet });
+  const { malletAngle1, shouldFlipMallet } =
+    0 <= targetAngleFromTop && targetAngleFromTop < 180
+      ? { malletAngle1: targetAngleFromTop, shouldFlipMallet: true }
+      : {
+          malletAngle1: targetAngleFromTop,
+          shouldFlipMallet: false,
+        };
+
+  // set malletAngle to the the version of malletAngle1 closest to
+  // lastMalletAngle (to avoid flipping)
+
+  const malletAngle = lastMalletAngleRef.current
+    ? ((malletAngle1 - lastMalletAngleRef.current + 180) % 360) -
+      180 +
+      lastMalletAngleRef.current
+    : malletAngle1;
+
+  lastMalletAngleRef.current = malletAngle;
 
   return (
     <g transform={`translate(${pos[0]}, ${pos[1]}) rotate(${rotate})`}>
@@ -754,8 +763,10 @@ function Ball(props: {
         strokeWidth={1}
         style={{ pointerEvents: "none" }}
       />
+      <g transform={`rotate(${malletAngle})`}>
       <g
-        transform={`rotate(${malletAngle - 45}) ${shouldFlipMallet ? "scale(-1, 1)" : ""}`}
+          className="transition duration-500"
+          transform={`scale(${shouldFlipMallet ? -1 : 1}, 1) rotate(45)`}
       >
         <image
           href="mallet-bw.png"
@@ -765,6 +776,7 @@ function Ball(props: {
           height="140"
           {...malletAttr}
         />
+        </g>
       </g>
     </g>
   );
