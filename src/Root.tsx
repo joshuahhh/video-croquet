@@ -331,7 +331,7 @@ export const Root = memo(() => {
         throw err;
       }
     }
-  }, 1000 / 25);
+  }, 1000 / 60);
 
   const switchToInFlightMode = useCallback(() => {
     if (levelState.type !== "putting") {
