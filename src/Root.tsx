@@ -245,7 +245,7 @@ export const Root = memo(() => {
 
       const st = new cv.Mat();
       const err = new cv.Mat();
-      const winSize = new cv.Size(15, 15);
+      const winSize = new cv.Size(33, 33);
       const maxLevel = 2;
       const criteria = new cv.TermCriteria(
         cv.TermCriteria_EPS | cv.TermCriteria_COUNT,
