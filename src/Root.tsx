@@ -3,7 +3,14 @@ import { useUpdateProxy } from "@engraft/update-proxy-react";
 import { Mat, default as cv } from "@techstark/opencv-js";
 import confetti from "canvas-confetti";
 import { path as d3path } from "d3-path";
-import { ReactNode, memo, useCallback, useEffect, useState } from "react";
+import {
+  ReactNode,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { rafLoop } from "./rafLoop";
 import { Button } from "./shadcn/Button";
 import {
@@ -404,6 +411,30 @@ export const Root = memo(() => {
     };
   }, [levelStateUP.puttPos, svg, videoElem]);
 
+  const targetAngle = useMemo(() => {
+    // find the closest target to the ball
+    let minDist = Infinity;
+    let targetAngle = 0;
+    for (const [i, [x, y]] of level.targets.entries()) {
+      const dist = Math.hypot(
+        levelState.puttPos[0] - x,
+        levelState.puttPos[1] - y,
+      );
+      if (dist < minDist) {
+        minDist = dist;
+        const targetAngleRadians = Math.atan2(
+          y - levelState.puttPos[1],
+          x - levelState.puttPos[0],
+        );
+        // convert to 0-360
+        targetAngle =
+          ((targetAngleRadians + Math.PI * 2) * (180 / Math.PI)) % 360;
+      }
+    }
+    console.log({ targetAngle });
+    return targetAngle;
+  }, [level.targets, levelState.puttPos]);
+
   return (
     <div
       className="flex flex-col items-center overflow-hidden w-full h-full"
@@ -486,6 +517,7 @@ export const Root = memo(() => {
                       malletAttr={{
                         className: "hidden",
                       }}
+                      targetAngle={targetAngle}
                     />
                   )}
                 </>
@@ -529,9 +561,10 @@ export const Root = memo(() => {
                     malletAttr={{
                       onClick: switchToInFlightMode,
                       className: `cursor-pointer transition duration-200 ${
-                        levelState.isDragging ? "opacity-0" : "opacity-100"
+                        levelState.isDragging ? "opacity-30" : "opacity-100"
                       }`,
                     }}
+                    targetAngle={targetAngle}
                   />
                 </>
               )}
@@ -668,11 +701,19 @@ function Ball(props: {
   rotate?: number;
   ballAttr?: React.SVGAttributes<SVGImageElement>;
   malletAttr?: React.SVGAttributes<SVGImageElement>;
+  targetAngle: number;
 }) {
-  const { pos, rotate = 0, ballAttr, malletAttr } = props;
+  const { pos, rotate = 0, targetAngle, ballAttr, malletAttr } = props;
 
   const ballR = 40;
   const maskR = ballR * 0.8;
+
+  const { malletAngle, shouldFlipMallet } =
+    90 <= targetAngle && targetAngle < 270
+      ? { malletAngle: targetAngle - 90, shouldFlipMallet: true }
+      : { malletAngle: targetAngle, shouldFlipMallet: false };
+
+  console.log({ malletAngle, shouldFlipMallet });
 
   return (
     <g transform={`translate(${pos[0]}, ${pos[1]}) rotate(${rotate})`}>
@@ -713,14 +754,18 @@ function Ball(props: {
         strokeWidth={1}
         style={{ pointerEvents: "none" }}
       />
-      <image
-        href="mallet-bw.png"
-        x={-110}
-        y={-180}
-        width="140"
-        height="140"
-        {...malletAttr}
-      />
+      <g
+        transform={`rotate(${malletAngle - 45}) ${shouldFlipMallet ? "scale(-1, 1)" : ""}`}
+      >
+        <image
+          href="mallet-bw.png"
+          x={-120}
+          y={-170}
+          width="140"
+          height="140"
+          {...malletAttr}
+        />
+      </g>
     </g>
   );
 }
