@@ -195,6 +195,8 @@ export const Root = memo(() => {
   const [levelState, setLevelState] = useState<LevelState>(intialLevelState);
   const levelStateUP = useUpdateProxy(setLevelState);
 
+  const [secretMode, setSecretMode] = useState(false);
+
   useEffect(() => {
     (window as any).cheat = () => {
       levelStateUP.puttPos.$set(level.solution!);
@@ -416,7 +418,7 @@ export const Root = memo(() => {
     // find the closest target to the ball
     let minDist = Infinity;
     let targetAngle = 0;
-    for (const [i, [x, y]] of level.targets.entries()) {
+    for (const [x, y] of level.targets) {
       const dist = Math.hypot(
         levelState.puttPos[0] - x,
         levelState.puttPos[1] - y,
@@ -584,32 +586,34 @@ export const Root = memo(() => {
               disabled={true}
             />
           </div>
-          <div
-            className="w-40 absolute right-[11.5%] top-[14%]"
-            style={{ transform: "translate(50%)" }}
-          >
-            <Select
-              value={"" + levelIdx}
-              onValueChange={(value) => {
-                const levelIdx = +value;
-                setLevelIdx(levelIdx);
-                setPassedLevel(false);
-                resetIntoPuttingMode(levelIdx);
-                videoElem!.load();
-              }}
+          {secretMode && (
+            <div
+              className="w-40 absolute right-[11.5%] top-[14%]"
+              style={{ transform: "translate(50%)" }}
             >
-              <SelectTrigger className="text-xl">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {levels.map((level, idx) => (
-                  <SelectItem key={idx} value={"" + idx} className="text-xl">
-                    {level.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+              <Select
+                value={"" + levelIdx}
+                onValueChange={(value) => {
+                  const levelIdx = +value;
+                  setLevelIdx(levelIdx);
+                  setPassedLevel(false);
+                  resetIntoPuttingMode(levelIdx);
+                  videoElem!.load();
+                }}
+              >
+                <SelectTrigger className="text-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {levels.map((level, idx) => (
+                    <SelectItem key={idx} value={"" + idx} className="text-xl">
+                      {level.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div
             className="absolute right-[11.5%] top-[61%]"
             style={{ transform: "translate(50%)" }}
@@ -632,6 +636,13 @@ export const Root = memo(() => {
               </Button>
             )}
           </div>
+          <div
+            className="absolute left-[0.8%] top-[69%] w-5 h-5"
+            style={{ transform: "translate(-50%, -50%)" }}
+            onClick={() => {
+              setSecretMode((prev) => !prev);
+            }}
+          />
           <h1 className="text-center text-7xl font-bold fixed left-0 right-0 top-3">
             VIDEO CROQUET 3000
           </h1>
@@ -764,18 +775,18 @@ function Ball(props: {
         style={{ pointerEvents: "none" }}
       />
       <g transform={`rotate(${malletAngle})`}>
-      <g
+        <g
           className="transition duration-500"
           transform={`scale(${shouldFlipMallet ? -1 : 1}, 1) rotate(45)`}
-      >
-        <image
-          href="mallet-bw.png"
-          x={-120}
-          y={-170}
-          width="140"
-          height="140"
-          {...malletAttr}
-        />
+        >
+          <image
+            href="mallet-bw.png"
+            x={-120}
+            y={-170}
+            width="140"
+            height="140"
+            {...malletAttr}
+          />
         </g>
       </g>
     </g>
