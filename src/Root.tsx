@@ -123,10 +123,10 @@ const levels: Level[] = [
     startTime: 0,
     endTime: 4,
     targets: [
-      [892, 447],
-      [298, 210],
+      [910, 426],
+      [312, 188],
     ],
-    solution: [1136, 494],
+    solution: [1122, 484],
   },
   {
     name: "train",
