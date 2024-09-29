@@ -520,14 +520,19 @@ export const Root = memo(() => {
                 viewBox: `0 0 ${videoSize[0]} ${videoSize[1]}`,
               })}
               onMouseMove={(ev) => {
-                if ((window as any).descartes) {
+                if (secretMode) {
                   const rect = ev.currentTarget.getBoundingClientRect();
                   const x = ev.clientX - rect.left;
                   const y = ev.clientY - rect.top;
                   console.log(
-                    "mouse over",
+                    JSON.stringify([
+                      Math.round(
                     (x * videoElem!.videoWidth) / videoElem!.clientWidth,
+),
+                      Math.round(
                     (y * videoElem!.videoHeight) / videoElem!.clientHeight,
+),
+                    ]),
                   );
                 }
               }}
