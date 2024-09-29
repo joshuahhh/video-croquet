@@ -203,7 +203,7 @@ const levels: Level[] = [
 type LevelState =
   | {
       type: "putting";
-      puttPos: [number, number];
+      puttPos: [number, number] | null; // null means we need to init it from the vid
       lastBallInFlight: null | {
         ballTrace: [number, number][];
         hitTargets: Set<number>;
@@ -219,9 +219,9 @@ type LevelState =
       prevImg: Mat | null;
     };
 
-const intialLevelState: LevelState = {
+const initialLevelState: LevelState = {
   type: "putting",
-  puttPos: [1920 / 2, 1080 / 2],
+  puttPos: null,
   lastBallInFlight: null,
   isDragging: false,
 };
@@ -237,7 +237,7 @@ export const Root = memo(() => {
 
   const [currentTime, setCurrentTime] = useState(0);
 
-  const [levelState, setLevelState] = useState<LevelState>(intialLevelState);
+  const [levelState, setLevelState] = useState<LevelState>(initialLevelState);
   const levelStateUP = useUpdateProxy(setLevelState);
 
   const [secretMode, setSecretMode] = useState(false);
@@ -420,14 +420,24 @@ export const Root = memo(() => {
     videoElem!.pause();
   }, [level.startTime, levelState, videoElem]);
 
-  const resetIntoPuttingMode = useCallback(
+  const goToLevel = useCallback(
     (levelIdx: number) => {
-      setLevelState(intialLevelState);
+      setLevelIdx(levelIdx);
+      setPassedLevel(false);
+      setVideoSize(null);
+      setLevelState(initialLevelState);
       videoElem!.currentTime = levels[levelIdx].startTime;
       videoElem!.pause();
+      videoElem!.load();
     },
     [videoElem],
   );
+
+  useEffect(() => {
+    if (videoSize && levelState.type === "putting" && !levelState.puttPos) {
+      levelStateUP.puttPos.$set([videoSize[0] / 2, videoSize[1] / 2]);
+    }
+  });
 
   const [svg, setSVG] = useState<SVGSVGElement | null>(null);
 
@@ -460,6 +470,10 @@ export const Root = memo(() => {
   }, [levelStateUP.puttPos, svg, videoElem]);
 
   const targetAngle = useMemo(() => {
+    if (levelState.puttPos === null) {
+      return 0;
+    }
+
     // find the closest target to the ball
     let minDist = Infinity;
     let targetAngle = 0;
@@ -529,11 +543,11 @@ export const Root = memo(() => {
                   console.log(
                     JSON.stringify([
                       Math.round(
-                    (x * videoElem!.videoWidth) / videoElem!.clientWidth,
-),
+                        (x * videoElem!.videoWidth) / videoElem!.clientWidth,
+                      ),
                       Math.round(
-                    (y * videoElem!.videoHeight) / videoElem!.clientHeight,
-),
+                        (y * videoElem!.videoHeight) / videoElem!.clientHeight,
+                      ),
                     ]),
                   );
                 }
@@ -552,7 +566,9 @@ export const Root = memo(() => {
               {/* WHEN IN FLIGHT: TRACE, ORIGINAL POSITION, FLYING BALL */}
               {levelState.type === "in-flight" && (
                 <>
+                  {/* TODO: scale this */}
                   <BallPath points={levelState.ballTrace} />
+                  {/* TODO: scale this */}
                   <circle
                     cx={levelState.puttPos[0]}
                     cy={levelState.puttPos[1]}
@@ -563,7 +579,7 @@ export const Root = memo(() => {
                   />
                   {levelState.ballPos && (
                     <Ball
-scale={scale}
+                      scale={scale}
                       pos={levelState.ballPos}
                       rotate={
                         (levelState.ballPos[0] - levelState.ballTrace[0][0]) *
@@ -578,13 +594,14 @@ scale={scale}
                 </>
               )}
               {/* WHEN PUTTING: OLD TRACE, DRAGGABLE BALL */}
-              {levelState.type === "putting" && (
+              {levelState.type === "putting" && levelState.puttPos && (
                 <>
                   {levelState.lastBallInFlight && (
+                    /* TODO: scale this */
                     <BallPath points={levelState.lastBallInFlight.ballTrace} />
                   )}
                   <Ball
-scale={scale}
+                    scale={scale}
                     pos={levelState.puttPos}
                     ballAttr={{
                       className: "cursor-move",
@@ -593,8 +610,8 @@ scale={scale}
                           init() {
                             levelStateUP.isDragging.$set(true);
                             return {
-                              startX: levelState.puttPos[0],
-                              startY: levelState.puttPos[1],
+                              startX: levelState.puttPos![0],
+                              startY: levelState.puttPos![1],
                             };
                           },
                           move({ startX, startY }) {
@@ -642,35 +659,31 @@ scale={scale}
           </div>
           {secretMode && (
             <>
-            <div
-              className="w-40 absolute right-[11.5%] top-[14%]"
-              style={{ transform: "translate(50%)" }}
-            >
-              <Select
-                value={"" + levelIdx}
-                onValueChange={(value) => {
-                  const levelIdx = +value;
-                  setLevelIdx(levelIdx);
-                  setPassedLevel(false);
-                  resetIntoPuttingMode(levelIdx);
-                  videoElem!.load();
-                }}
+              <div
+                className="w-40 absolute right-[11.5%] top-[14%]"
+                style={{ transform: "translate(50%)" }}
               >
-                <SelectTrigger className="text-xl">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {levels.map((level, idx) => (
+                <Select
+                  value={"" + levelIdx}
+                  onValueChange={(value) => {
+                    goToLevel(+value);
+                  }}
+                >
+                  <SelectTrigger className="text-xl">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {levels.map((level, idx) => (
                       <SelectItem
                         key={idx}
                         value={"" + idx}
                         className="text-xl"
                       >
-                      {level.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                        {level.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               {level.solution && (
                 <div
@@ -686,7 +699,7 @@ scale={scale}
                   >
                     cheat
                   </Button>
-            </div>
+                </div>
               )}
             </>
           )}
@@ -699,16 +712,13 @@ scale={scale}
                 variant="secondary"
                 onClick={() => {
                   const newIdx = (levelIdx + 1) % levels.length;
-                  setLevelIdx(newIdx);
-                  setPassedLevel(false);
-                  resetIntoPuttingMode(newIdx);
-                  videoElem!.load();
+                  goToLevel(newIdx);
                 }}
                 className="text-3xl"
               >
                 {levelIdx === levels.length - 1
                   ? "back to start"
-                  : "next level"}
+                  : "next level 👉"}
               </Button>
             )}
           </div>
@@ -788,16 +798,16 @@ function Ball(props: {
   ballAttr?: React.SVGAttributes<SVGImageElement>;
   malletAttr?: React.SVGAttributes<SVGImageElement>;
   targetAngle: number;
-scale?: number;
+  scale?: number;
 }) {
   const {
-pos,
-rotate = 0,
+    pos,
+    rotate = 0,
     scale = 1,
-targetAngle,
-ballAttr,
-malletAttr,
-} = props;
+    targetAngle,
+    ballAttr,
+    malletAttr,
+  } = props;
 
   const lastMalletAngleRef = useRef<number | null>(null);
 
@@ -847,17 +857,17 @@ malletAttr,
           // fill="rgba(0,0,0,80%)"
         />
       </mask>
-<g transform={`rotate(${rotate})`}>
-      <image
-        href="ball.png"
-        x={-ballR}
-        y={-ballR}
-        width={2 * ballR}
-        height={2 * ballR}
-        mask="url(#ball-mask)"
-        {...ballAttr}
-      />
-</g>
+      <g transform={`rotate(${rotate})`}>
+        <image
+          href="ball.png"
+          x={-ballR}
+          y={-ballR}
+          width={2 * ballR}
+          height={2 * ballR}
+          mask="url(#ball-mask)"
+          {...ballAttr}
+        />
+      </g>
       <circle
         cy={1}
         r={ballR}
