@@ -119,11 +119,9 @@ const levels: Level[] = [
         </a>
       </>
     ),
-    videoUrl: "cirrus.webm",
-    // startTime: 2 * 60 + 10,
-    startTime: 1 * 60 + 40,
-    // startTime: 37,
-    endTime: 1 * 60 + 44,
+    videoUrl: "cirrus-cut.webm",
+    startTime: 0,
+    endTime: 4,
     targets: [
       [892, 447],
       [298, 210],
