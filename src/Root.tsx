@@ -482,6 +482,8 @@ export const Root = memo(() => {
     return targetAngle;
   }, [level.targets, levelState.puttPos]);
 
+  const scale = videoSize ? videoSize[0] / 1920 : undefined;
+
   return (
     <div
       className="flex flex-col items-center overflow-hidden w-full h-full"
@@ -545,7 +547,7 @@ export const Root = memo(() => {
                     ? levelState.hitTargets.has(i)
                     : (levelState.lastBallInFlight?.hitTargets.has(i) ?? false);
 
-                return <Target key={i} x={x} y={y} hit={hit} />;
+                return <Target key={i} x={x} y={y} hit={hit} scale={scale} />;
               })}
               {/* WHEN IN FLIGHT: TRACE, ORIGINAL POSITION, FLYING BALL */}
               {levelState.type === "in-flight" && (
@@ -561,6 +563,7 @@ export const Root = memo(() => {
                   />
                   {levelState.ballPos && (
                     <Ball
+scale={scale}
                       pos={levelState.ballPos}
                       rotate={
                         (levelState.ballPos[0] - levelState.ballTrace[0][0]) *
@@ -581,6 +584,7 @@ export const Root = memo(() => {
                     <BallPath points={levelState.lastBallInFlight.ballTrace} />
                   )}
                   <Ball
+scale={scale}
                     pos={levelState.puttPos}
                     ballAttr={{
                       className: "cursor-move",
@@ -755,10 +759,10 @@ targetPath.lineTo(s, s);
 // targetPath.closePath();
 const targetPathD = targetPath.toString();
 
-function Target(props: { x: number; y: number; hit: boolean }) {
-  const { x, y, hit } = props;
+function Target(props: { x: number; y: number; hit: boolean; scale?: number }) {
+  const { x, y, hit, scale = 1 } = props;
   return (
-    <g transform={`translate(${x}, ${y})`}>
+    <g transform={`translate(${x}, ${y}) scale(${scale})`}>
       {/* <circle r='20' fill={hit ? 'green' : 'black'} stroke='white' strokeWidth={4}/> */}
       <path
         d={targetPathD}
@@ -784,8 +788,16 @@ function Ball(props: {
   ballAttr?: React.SVGAttributes<SVGImageElement>;
   malletAttr?: React.SVGAttributes<SVGImageElement>;
   targetAngle: number;
+scale?: number;
 }) {
-  const { pos, rotate = 0, targetAngle, ballAttr, malletAttr } = props;
+  const {
+pos,
+rotate = 0,
+    scale = 1,
+targetAngle,
+ballAttr,
+malletAttr,
+} = props;
 
   const lastMalletAngleRef = useRef<number | null>(null);
 
@@ -814,7 +826,7 @@ function Ball(props: {
   lastMalletAngleRef.current = malletAngle;
 
   return (
-    <g transform={`translate(${pos[0]}, ${pos[1]}) rotate(${rotate})`}>
+    <g transform={`translate(${pos[0]}, ${pos[1]}) scale(${scale})`}>
       <radialGradient id="ball-mask-gradient">
         <stop offset="50%" stop-color="rgba(0,0,0,90%)" />
         <stop offset="100%" stop-color="rgba(0,0,0,0%)" />
@@ -835,6 +847,7 @@ function Ball(props: {
           // fill="rgba(0,0,0,80%)"
         />
       </mask>
+<g transform={`rotate(${rotate})`}>
       <image
         href="ball.png"
         x={-ballR}
@@ -844,6 +857,7 @@ function Ball(props: {
         mask="url(#ball-mask)"
         {...ballAttr}
       />
+</g>
       <circle
         cy={1}
         r={ballR}
