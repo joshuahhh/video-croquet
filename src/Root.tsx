@@ -63,28 +63,6 @@ const levels: Level[] = [
     solution: [1170, 428],
   },
   {
-    name: "starlings",
-    credit: (
-      <>
-        video by{" "}
-        <a
-          href="https://www.youtube.com/watch?v=V4f_1_r80RY"
-          className="text-blue-300"
-        >
-          Jan van IJken
-        </a>
-      </>
-    ),
-    videoUrl: "starlings-cut.webm",
-    startTime: 0,
-    endTime: 10,
-    targets: [
-      [976, 626],
-      [656, 620],
-    ],
-    solution: [1058, 696],
-  },
-  {
     name: "bike",
     credit: (
       <>
@@ -107,26 +85,26 @@ const levels: Level[] = [
     solution: [1398, 442],
   },
   {
-    name: "cirrus",
+    name: "starlings",
     credit: (
       <>
         video by{" "}
         <a
-          href="https://www.youtube.com/watch?v=WF34N4gJAKE"
+          href="https://www.youtube.com/watch?v=V4f_1_r80RY"
           className="text-blue-300"
         >
-          Bonobo & Cyriak
+          Jan van IJken
         </a>
       </>
     ),
-    videoUrl: "cirrus-cut.webm",
+    videoUrl: "starlings-cut.webm",
     startTime: 0,
-    endTime: 4,
+    endTime: 10,
     targets: [
-      [910, 426],
-      [312, 188],
+      [976, 626],
+      [656, 620],
     ],
-    solution: [1122, 484],
+    solution: [1058, 696],
   },
   {
     name: "train",
@@ -188,15 +166,36 @@ const levels: Level[] = [
         </a>
       </>
     ),
-    videoUrl: "superslow.mp4",
-    startTime: 1 * 60 + 40,
-    // startTime: 0,
-    endTime: 1 * 60 + 55,
+    videoUrl: "superslow-cut.webm",
+    startTime: 0,
+    endTime: 15,
     targets: [
       [877, 539],
       [1113, 748],
     ],
     solution: [819, 798],
+  },
+  {
+    name: "cirrus",
+    credit: (
+      <>
+        video by{" "}
+        <a
+          href="https://www.youtube.com/watch?v=WF34N4gJAKE"
+          className="text-blue-300"
+        >
+          Bonobo & Cyriak
+        </a>
+      </>
+    ),
+    videoUrl: "cirrus-cut.webm",
+    startTime: 0,
+    endTime: 4,
+    targets: [
+      [910, 426],
+      [312, 188],
+    ],
+    solution: [1122, 484],
   },
 ];
 
